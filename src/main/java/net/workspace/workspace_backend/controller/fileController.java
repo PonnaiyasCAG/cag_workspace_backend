@@ -9,6 +9,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/files")
+@CrossOrigin
+
 public class fileController {
 
   /*  @Autowired
