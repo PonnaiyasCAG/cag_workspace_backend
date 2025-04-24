@@ -9,8 +9,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin
-
+@CrossOrigin( origins = {"http://localhost:3000/"})
 public class fileController {
 
   /*  @Autowired
