@@ -106,7 +106,7 @@ public class FileStructureService {
                 createRecursive(item, userBasePath, userBasePath);
             }
 
-            String message = "Folder structure created successfully for userId: " + userId;
+            String message = "Folder structure created successfully ";
             return new StructureResponse("success", message, structure);
 
         } catch (Exception e) {
