@@ -1,13 +1,14 @@
 package net.workspace.workspace_backend.service;
 
+import net.workspace.workspace_backend.model.StructureResponse;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 /*public class FileStructureService {
@@ -95,7 +96,7 @@ public class FileStructureService {
     private static final String BASE_PATH = "D:\\Workspace";
     private static final long MAX_USER_FOLDER_SIZE = 50 * 1024 * 1024; // 50 MB
 
-    public String createStructure(String userId, List<Map<String, Object>> structure) {
+    public StructureResponse createStructure(String userId, List<Map<String, Object>> structure) {
         String userBasePath = Paths.get(BASE_PATH, userId).toString();
 
         try {
@@ -105,12 +106,15 @@ public class FileStructureService {
                 createRecursive(item, userBasePath, userBasePath);
             }
 
-            return "Folder structure created successfully for userId: " + userId;
+            String message = "Folder structure created successfully for userId: " + userId;
+            return new StructureResponse("success", message, structure);
+
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error: " + e.getMessage();
+            return new StructureResponse("error", "Error: " + e.getMessage(), structure);
         }
     }
+
 
     @SuppressWarnings("unchecked")
     private void createRecursive(Map<String, Object> node, String currentPath, String userFolderPath) throws IOException {
@@ -161,4 +165,65 @@ public class FileStructureService {
 
         return size[0];
     }
+    public StructureResponse getStructure(String userId) {
+        String userBasePath = Paths.get(BASE_PATH, userId).toString();
+        Path basePath = Paths.get(userBasePath);
+
+        List<Map<String, Object>> structure = new ArrayList<>();
+
+        if (!Files.exists(basePath) || !Files.isDirectory(basePath)) {
+            return new StructureResponse("error", "Folder not found for userId: " + userId, structure);
+        }
+
+        try (Stream<Path> stream = Files.list(basePath)) {
+            stream.forEach(path -> {
+                structure.add(buildStructure(path));
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new StructureResponse("error", "Error reading folder structure: " + e.getMessage(), structure);
+        }
+
+        return new StructureResponse("success", "Folder structure retrieved for userId: " + userId, structure);
+    }
+
+
+    private Map<String, Object> buildStructure(Path path) {
+        Map<String, Object> item = new HashMap<>();
+        item.put("name", path.getFileName().toString());
+
+        if (Files.isDirectory(path)) {
+            item.put("type", "folder");
+            List<Map<String, Object>> children = new ArrayList<>();
+            try (Stream<Path> stream = Files.list(path)) {
+                stream.forEach(child -> children.add(buildStructure(child)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            item.put("children", children);
+        } else {
+            item.put("type", "file");
+            try {
+                String mimeType = Files.probeContentType(path);
+                item.put("originalType", mimeType != null ? mimeType : "unknown");
+
+                // Read file bytes and convert to Base64
+                byte[] fileBytes = Files.readAllBytes(path);
+                String base64 = Base64.getEncoder().encodeToString(fileBytes);
+
+                // Convert to data URI format
+                String base64DataUrl = "data:" + mimeType + ";base64," + base64;
+                item.put("url", base64DataUrl);
+
+            } catch (IOException e) {
+                item.put("originalType", "unknown");
+                item.put("url", null);
+            }
+        }
+
+        return item;
+    }
+
+
+
 }

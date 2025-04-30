@@ -1,7 +1,9 @@
 package net.workspace.workspace_backend.controller;
 
+import net.workspace.workspace_backend.model.StructureResponse;
 import net.workspace.workspace_backend.service.FileStructureService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,13 +25,23 @@ public class fileController {
   @Autowired
   private FileStructureService fileStructureService;
 
-    @PostMapping("/create/{userId}")
-    public String createFileStructure(
-            @PathVariable String userId,
-            @RequestBody List<Map<String, Object>> structure
-    ) {
-        return fileStructureService.createStructure(userId, structure);
-    }
+  @PostMapping("/create/{userId}")
+  public ResponseEntity<StructureResponse> createFileStructure(
+          @PathVariable String userId,
+          @RequestBody List<Map<String, Object>> structure
+  ) {
+    StructureResponse response = fileStructureService.createStructure(userId, structure);
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/structure/{userId}")
+  public ResponseEntity<StructureResponse> getStructure(@PathVariable String userId) {
+    StructureResponse response = fileStructureService.getStructure(userId);
+    return ResponseEntity.ok(response);
+  }
+
+
+
 }
 
 
