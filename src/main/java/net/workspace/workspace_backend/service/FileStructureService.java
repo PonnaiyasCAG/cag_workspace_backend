@@ -117,6 +117,7 @@ public class FileStructureService {
 
 
     @SuppressWarnings("unchecked")
+
     private void createRecursive(Map<String, Object> node, String currentPath, String userFolderPath) throws IOException {
         String name = (String) node.get("name");
         String type = (String) node.get("type");
@@ -223,7 +224,82 @@ public class FileStructureService {
 
         return item;
     }
+    public StructureResponse deleteItems(String userId, List<String> relativePaths) {
+        Path userPath = Paths.get(BASE_PATH, userId);
+        List<String> failed = new ArrayList<>();
 
+        for (String relativePath : relativePaths) {
+            Path fullPath = userPath.resolve(relativePath);
+            try {
+                if (Files.exists(fullPath)) {
+                    deleteRecursively(fullPath);
+                } else {
+                    failed.add(relativePath + " (not found)");
+                }
+            } catch (IOException e) {
+                failed.add(relativePath + " (error: " + e.getMessage() + ")");
+            }
+        }
 
+        if (failed.isEmpty()) {
+            return new StructureResponse("success", "All items deleted successfully.", new ArrayList<>());
+        } else {
+            List<Map<String, Object>> failedList = new ArrayList<>();
+            for (String failMsg : failed) {
+                Map<String, Object> failEntry = new HashMap<>();
+                failEntry.put("error", failMsg);
+                failedList.add(failEntry);
+            }
+            return new StructureResponse("partial", "Some items couldn't be deleted.", failedList);
+        }
+    }
+
+    private void deleteRecursively(Path path) throws IOException {
+        if (Files.isDirectory(path)) {
+            try (Stream<Path> stream = Files.list(path)) {
+                for (Path subPath : (Iterable<Path>) stream::iterator) {
+                    deleteRecursively(subPath);
+                }
+            }
+        }
+        Files.delete(path);
+    }
+    public StructureResponse renameItem(String userId, String oldPath, String newName) {
+        Path userPath = Paths.get(BASE_PATH, userId);
+        Path oldFullPath = Paths.get(userPath.toString(), oldPath);
+        Path newFullPath = oldFullPath.resolveSibling(newName);
+
+        if (!Files.exists(oldFullPath)) {
+            return new StructureResponse("error", "Item not found", null);
+        }
+
+        try {
+            Files.move(oldFullPath, newFullPath);
+            return new StructureResponse("success", "Item renamed successfully", null);
+        } catch (IOException e) {
+            return new StructureResponse("error", "Rename failed: " + e.getMessage(), null);
+        }
+    }
+
+    public StructureResponse updateStructure(String userId, List<Map<String, Object>> structure) {
+        // Build the path to the user's root folder—but do NOT create it
+        Path userBasePath = Paths.get(BASE_PATH, userId);
+
+        if (!Files.exists(userBasePath) || !Files.isDirectory(userBasePath)) {
+            // If the user folder really doesn't exist, return an error
+            return new StructureResponse("error", "User folder not found: " + userId, structure);
+        }
+
+        try {
+            // Only iterate the incoming structure and create under the existing folder
+            for (Map<String, Object> item : structure) {
+                createRecursive(item, userBasePath.toString(), userBasePath.toString());
+            }
+            return new StructureResponse("success", "Structure updated successfully", structure);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new StructureResponse("error", "Error: " + e.getMessage(), structure);
+        }
+    }
 
 }

@@ -40,6 +40,35 @@ public class fileController {
     return ResponseEntity.ok(response);
   }
 
+  @DeleteMapping("/delete/{userId}")
+  public ResponseEntity<StructureResponse> deleteItems(
+          @PathVariable String userId,
+          @RequestBody Map<String, List<String>> payload
+  ) {
+    List<String> paths = payload.get("paths");
+    StructureResponse response = fileStructureService.deleteItems(userId, paths);
+    return ResponseEntity.ok(response);
+  }
+
+  @PutMapping("/rename/{userId}")
+  public ResponseEntity<StructureResponse> renameItem(
+          @PathVariable String userId,
+          @RequestBody Map<String, String> payload
+  ) {
+    String oldPath = payload.get("oldPath");
+    String newName = payload.get("newName");
+    StructureResponse response = fileStructureService.renameItem(userId, oldPath, newName);
+    return ResponseEntity.ok(response);
+  }
+
+  @PutMapping("/structure/{userId}")
+  public ResponseEntity<StructureResponse> updateFileStructure(
+          @PathVariable String userId,
+          @RequestBody List<Map<String, Object>> structure
+  ) {
+    StructureResponse response = fileStructureService.updateStructure(userId, structure);
+    return ResponseEntity.ok(response);
+  }
 
 
 }

@@ -2,13 +2,16 @@ package net.workspace.workspace_backend.controller;
 
 
 import net.workspace.workspace_backend.model.LoginRequest;
+import net.workspace.workspace_backend.model.StructureResponse;
 import net.workspace.workspace_backend.model.UserDetails;
 import net.workspace.workspace_backend.model.UserResponse;
 import net.workspace.workspace_backend.service.UserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin( origins = {"http://localhost:3000/"})
@@ -33,4 +36,6 @@ public class UserDetailsController {
         UserDetails savedUser = UserdetailsService.createUser(userdetails); // Save user to DB
         return new UserResponse("Success", savedUser);  // Return the user along with success status
     }
+
+
 }
