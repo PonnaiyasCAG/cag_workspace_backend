@@ -189,7 +189,7 @@ public class FileStructureService {
     }
 
 
-    private Map<String, Object> buildStructure(Path path) {
+    /*private Map<String, Object> buildStructure(Path path) {
         Map<String, Object> item = new HashMap<>();
         item.put("name", path.getFileName().toString());
 
@@ -213,6 +213,50 @@ public class FileStructureService {
                 String base64 = Base64.getEncoder().encodeToString(fileBytes);
 
                 // Convert to data URI format
+                String base64DataUrl = "data:" + mimeType + ";base64," + base64;
+                item.put("url", base64DataUrl);
+
+            } catch (IOException e) {
+                item.put("originalType", "unknown");
+                item.put("url", null);
+            }
+        }
+
+        return item;
+    }*/
+
+    private Map<String, Object> buildStructure(Path path) {
+        Map<String, Object> item = new HashMap<>();
+        String fileName = path.getFileName().toString();
+        item.put("name", fileName);
+
+        // Extract file extension
+        String extension = "";
+        int lastDot = fileName.lastIndexOf('.');
+        if (lastDot != -1 && lastDot < fileName.length() - 1) {
+            extension = fileName.substring(lastDot + 1);
+        }
+
+        if (Files.isDirectory(path)) {
+            item.put("type", "folder");
+            List<Map<String, Object>> children = new ArrayList<>();
+            try (Stream<Path> stream = Files.list(path)) {
+                stream.forEach(child -> children.add(buildStructure(child)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            item.put("children", children);
+        } else {
+            item.put("type", "file");
+            item.put("extension", extension); // <-- Add extension here
+
+            try {
+                String mimeType = Files.probeContentType(path);
+                item.put("originalType", mimeType != null ? mimeType : "unknown");
+
+                byte[] fileBytes = Files.readAllBytes(path);
+                String base64 = Base64.getEncoder().encodeToString(fileBytes);
+
                 String base64DataUrl = "data:" + mimeType + ";base64," + base64;
                 item.put("url", base64DataUrl);
 
