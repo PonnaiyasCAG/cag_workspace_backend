@@ -1,7 +1,7 @@
 package net.workspace.workspace_backend.controller;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
 import net.workspace.workspace_backend.model.FileUploadRequest;
+import net.workspace.workspace_backend.model.FileUploadResponse;
 import net.workspace.workspace_backend.service.FileUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +16,8 @@ public class FileUploadController {
     private FileUploadService fileUploadService;
 
     @PostMapping("/upload")
-    public String uploadFiles(@RequestBody List<FileUploadRequest> result) {
-        System.out.println("varuthu >>>>1");
+    public FileUploadResponse uploadFiles(@RequestBody List<FileUploadRequest> result) {
         return fileUploadService.saveFiles(result);
     }
+
 }

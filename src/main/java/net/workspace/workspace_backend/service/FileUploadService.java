@@ -1,6 +1,7 @@
 package net.workspace.workspace_backend.service;
 
 import net.workspace.workspace_backend.model.FileUploadRequest;
+import net.workspace.workspace_backend.model.FileUploadResponse;
 import net.workspace.workspace_backend.model.UploadedFile;
 import net.workspace.workspace_backend.repository.UploadedFileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +16,9 @@ public class FileUploadService {
     @Autowired
     private UploadedFileRepository fileRepository;
 
-    public String saveFiles(List<FileUploadRequest> requests) {
+    public FileUploadResponse saveFiles(List<FileUploadRequest> requests) {
         for (FileUploadRequest fileReq : requests) {
             try {
-                // Remove prefix from Base64 string
                 String base64Data = fileReq.getBase64().split(",")[1];
                 byte[] fileBytes = Base64.getDecoder().decode(base64Data);
 
@@ -29,11 +29,13 @@ public class FileUploadService {
                 file.setBase64(fileBytes);
 
                 fileRepository.save(file);
+
             } catch (Exception e) {
-                e.printStackTrace(); // Add this line
-                return "Failed to save file: " + fileReq.getName() + " - " + e.getMessage();
+                e.printStackTrace();
+                return new FileUploadResponse("error", "Failed to save file: " + fileReq.getName() + " - " + e.getMessage());
             }
         }
-        return "Files uploaded successfully!";
+        return new FileUploadResponse("success", "Files uploaded successfully!");
     }
+
 }
