@@ -10,6 +10,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/file")
+@CrossOrigin( origins = {"http://localhost:3000/"})
+
 public class FileUploadController {
 
     @Autowired

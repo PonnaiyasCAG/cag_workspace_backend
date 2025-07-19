@@ -19,14 +19,24 @@ public class FileUploadService {
     public FileUploadResponse saveFiles(List<FileUploadRequest> requests) {
         for (FileUploadRequest fileReq : requests) {
             try {
-                String base64Data = fileReq.getBase64().split(",")[1];
-                byte[] fileBytes = Base64.getDecoder().decode(base64Data);
+//                String base64Data = fileReq.getBase64().split(",")[1];
+//                System.out.println("base64Data>>>"+base64Data);
+//                byte[] fileBytes = Base64.getDecoder().decode(base64Data);
+//
+//                UploadedFile file = new UploadedFile();
+//                file.setName(fileReq.getName());
+//                file.setType(fileReq.getType());
+//                file.setUserId(fileReq.getUserId());
+//                file.setBase64(fileBytes);
+
+                String fullBase64 = fileReq.getBase64();
+
 
                 UploadedFile file = new UploadedFile();
                 file.setName(fileReq.getName());
                 file.setType(fileReq.getType());
                 file.setUserId(fileReq.getUserId());
-                file.setBase64(fileBytes);
+                file.setBase64(fullBase64);
 
                 fileRepository.save(file);
 
